@@ -29,12 +29,10 @@ export interface TypeStatic<
   getLength(): SIZE;
 }
 
-export type Unwrap<T extends any> =
-  T extends Type<infer U>
-    ? U
-    : T extends TypeStatic<infer Z, any, any>
-      ? Unwrap<Z>
-      : never;
+export type UnwrapType<T extends Type<any>> =
+  T extends Type<infer U> ? U : never;
+export type UnwrapStatic<T extends TypeStatic<any, any, any>> =
+  T extends TypeStatic<infer Z, any, any> ? UnwrapType<Z> : never;
 export type UnwrapSize<T extends any> =
   T extends TypeStatic<any, infer SIZE, any> ? SIZE : never;
 export type UnwrapAlignment<T extends any> =

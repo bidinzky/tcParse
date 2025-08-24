@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ark/attest": "^0.48.2",
     "temporal-polyfill": "^0.3.0",
     "typescript": "^5.9.2"
   },

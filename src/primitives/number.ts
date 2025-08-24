@@ -1,4 +1,4 @@
-import { Type, BaseType, TypeStatic, UnwrapSize } from "../base";
+import { Type, BaseType, TypeStatic, UnwrapType } from "../base";
 
 class Uint8Base extends BaseType<number> {
   serialize(data: number) {
@@ -93,9 +93,10 @@ interface TypeConstructor<T> {
 }
 
 function createType<
-  T extends TypeConstructor<number | bigint>,
-  SIZE extends number,
->(TY: T, size: SIZE): TypeStatic<Type<number | bigint>, SIZE> {
+  T extends TypeConstructor<any>,
+  const SIZE extends number,
+  INST extends Type<any> = InstanceType<T>,
+>(TY: T, size: SIZE): TypeStatic<INST, SIZE, SIZE> {
   return {
     getAlignment() {
       return size;
@@ -104,7 +105,7 @@ function createType<
       return size;
     },
     create(dv, buffer, offset = 0) {
-      return new TY(dv, offset, buffer);
+      return new TY(dv, offset, buffer) as INST;
     },
   };
 }

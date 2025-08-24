@@ -22,9 +22,9 @@ class STRINGBase extends BaseType<string> {
   }
 }
 
-export function STRING<SIZE extends number>(
+export function STRING<SIZE extends number, SIZE_1 extends Add<SIZE, 1>>(
   size: SIZE,
-): TypeStatic<STRINGBase, Add<SIZE, 1>, 1> {
+): TypeStatic<STRINGBase, SIZE_1, 1> {
   return {
     create(dv, buffer, offset = 0) {
       return new STRINGBase(
@@ -37,7 +37,7 @@ export function STRING<SIZE extends number>(
       return 1;
     },
     getLength() {
-      return (size + 1) as Add<SIZE, 1>;
+      return (size + 1) as SIZE_1;
     },
   };
 }

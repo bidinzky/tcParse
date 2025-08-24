@@ -1,8 +1,14 @@
 import { Add, Max, Mod, Subtract } from "ts-arithmetic";
-import { Type, TypeStatic, Unwrap, UnwrapAlignment, UnwrapSize } from "./base";
+import {
+  Type,
+  TypeStatic,
+  UnwrapAlignment,
+  UnwrapSize,
+  UnwrapStatic,
+} from "./base";
 
 type UnwrapObject<T extends Record<string, TypeStatic<any, number>>> = {
-  [name in keyof T]: Unwrap<T[name]>;
+  [name in keyof T]: UnwrapStatic<T[name]>;
 } & {};
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
@@ -58,16 +64,17 @@ class StructBase<T extends Record<string, TypeStatic<any, number>>>
   serialize(data: UnwrapObject<T>) {}
 }
 
-type ObjectAlignedSize<T extends Record<string, TypeStatic<any, number>>> = Add<
-  UnwrapObjectSize<T>,
-  Subtract<
-    UnwrapObjectAlignment<T>,
-    Mod<UnwrapObjectSize<T>, UnwrapObjectAlignment<T>>
-  >
->;
-export function STRUCT<T extends Record<string, TypeStatic<any, number>>>(
-  fields: T,
-): TypeStatic<StructBase<T>, ObjectAlignedSize<T>, UnwrapObjectAlignment<T>> {
+type ObjectAlignedSize<
+  T extends Record<string, TypeStatic<any, number>>,
+  ALIGNMENT extends number = UnwrapObjectAlignment<T>,
+  SIZE extends number = UnwrapObjectSize<T>,
+> = Add<SIZE, Subtract<ALIGNMENT, Mod<SIZE, ALIGNMENT>>>;
+
+export function STRUCT<
+  T extends Record<string, TypeStatic<any, number>>,
+  ALIGNMENT extends UnwrapObjectAlignment<T>,
+  SIZE extends ObjectAlignedSize<T, ALIGNMENT>,
+>(fields: T): TypeStatic<StructBase<T>, SIZE, ALIGNMENT> {
   return {
     create(buffer) {
       return new StructBase();
@@ -75,13 +82,13 @@ export function STRUCT<T extends Record<string, TypeStatic<any, number>>>(
     getAlignment() {
       return Math.max(
         ...Object.keys(fields).map((f) => fields[f]!.getAlignment()),
-      ) as UnwrapObjectAlignment<T>;
+      ) as ALIGNMENT;
     },
     getLength() {
       const length = Object.keys(fields)
         .map((f) => fields[f]!.getLength())
         .reduce((a, b) => a + b, 0);
-      return (length + (length % this.getAlignment())) as ObjectAlignedSize<T>;
+      return (length + (length % this.getAlignment())) as SIZE;
     },
   };
 }

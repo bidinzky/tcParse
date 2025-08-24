@@ -1,5 +1,12 @@
 import { Multiply } from "ts-arithmetic";
-import { BaseType, Type, TypeStatic, Unwrap, UnwrapSize } from "./base";
+import {
+  BaseType,
+  Type,
+  TypeStatic,
+  UnwrapStatic,
+  UnwrapAlignment,
+  UnwrapSize,
+} from "./base";
 
 type Tuple<T, N extends number> = N extends N
   ? number extends N
@@ -11,10 +18,11 @@ type _TupleOf<T, N extends number, R extends unknown[]> = R["length"] extends N
   : _TupleOf<T, N, [T, ...R]>;
 
 class ArrayBase<
-  N extends number,
-  T extends TypeStatic<any, any>,
-> extends BaseType<Tuple<Unwrap<T>, N>> {
-  private type: Tuple<ReturnType<T["create"]>, N>;
+  const N extends number,
+  T extends TypeStatic<Type<unknown>, any>,
+  RDATA extends unknown[] = Tuple<UnwrapStatic<T>, N>,
+> extends BaseType<RDATA> {
+  private type: Type<unknown>[];
   constructor(
     dv: DataView,
     offset: number,
@@ -34,32 +42,34 @@ class ArrayBase<
           ),
           offset + type.getLength() * i,
         ),
-      ) as Tuple<ReturnType<T["create"]>, N>;
+      );
   }
-  deserialize(): Tuple<Unwrap<T>, N> {
-    const result = Array(this.type.length) as Tuple<Unwrap<T>, N>;
+  deserialize(): RDATA {
+    const result = Array(this.type.length) as RDATA;
     for (let i = 0; i < this.type.length; i++) {
       result[i] = this.type[i]!.deserialize();
     }
     return result;
   }
-  serialize(data: Tuple<Unwrap<T>, N>): void {
+  serialize(data: RDATA): void {
     for (let i = 0; i < data.length; i++) {
       this.type[i]!.serialize(data[i]);
     }
   }
 }
 
-export function ARRAY<T extends TypeStatic<any, any>, const N extends number>(
-  type: T,
-  count: N,
-): TypeStatic<ArrayBase<N, T>, Multiply<N, UnwrapSize<T>>> {
+export function ARRAY<
+  T extends TypeStatic<any, any>,
+  const N extends number,
+  SIZE extends Multiply<N, UnwrapSize<T>>,
+  ALIGNEMENT extends UnwrapAlignment<T>,
+>(type: T, count: N): TypeStatic<ArrayBase<N, T>, SIZE, ALIGNEMENT> {
   return {
     getAlignment() {
       return type.getAlignment();
     },
     getLength() {
-      return (type.getLength() * count) as Multiply<N, UnwrapSize<T>> & {};
+      return (type.getLength() * count) as SIZE;
     },
     create(dv, buffer, offset = 0) {
       return new ArrayBase(dv, offset, buffer, type, count);

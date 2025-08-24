@@ -1,4 +1,4 @@
-import { Type, BaseType, TypeStatic } from "../base";
+import { BaseType, TypeStatic } from "../base";
 import { Temporal } from "temporal-polyfill";
 
 class DATEBase extends BaseType<Temporal.Instant> {
@@ -53,3 +53,6 @@ export const LDATE: TypeStatic<LDATEBase, 8> = {
     return new LDATEBase(dv, offset, buffer);
   },
 };
+
+export const LDATE_AND_TIME = LDATE;
+export const LDT = LDATE;

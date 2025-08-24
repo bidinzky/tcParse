@@ -1,4 +1,10 @@
-import { BaseType, Type, TypeStatic, UnwrapSize } from "./base";
+import {
+  BaseType,
+  Type,
+  TypeStatic,
+  UnwrapAlignment,
+  UnwrapSize,
+} from "./base";
 
 type EnumValue<TEnum> = ((TEnum[keyof TEnum] & number) | string) & {};
 type EnumObject<TEnum> = {
@@ -8,14 +14,16 @@ type EnumObject<TEnum> = {
 
 export function ENUM<
   T extends EnumObject<T>,
-  TY extends TypeStatic<Type<number | bigint>, number>,
->(filed: T, ty: TY): TypeStatic<Type<T>, UnwrapSize<TY>> {
+  TY extends TypeStatic<Type<number | bigint>, SIZE, ALIGNEMENT>,
+  SIZE extends number,
+  ALIGNEMENT extends number,
+>(filed: T, ty: TY): TypeStatic<Type<T>, SIZE, ALIGNEMENT> {
   return {
     getAlignment() {
-      return ty.getAlignment();
+      return ty.getAlignment() as ALIGNEMENT;
     },
     getLength() {
-      return ty.getLength() as UnwrapSize<TY>;
+      return ty.getLength() as SIZE;
     },
     create(dv, buffer, offset = 0) {
       return new (class implements Type<T> {
